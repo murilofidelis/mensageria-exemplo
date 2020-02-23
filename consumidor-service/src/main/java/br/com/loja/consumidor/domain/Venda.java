@@ -1,4 +1,4 @@
-package br.com.loja.produtor.domain;
+package br.com.loja.consumidor.domain;
 
 
 import lombok.Getter;
@@ -17,13 +17,13 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @Entity
-@Table(name = "tab_venda", schema = "venda")
+@Table(name = "tab_vendas", schema = "vendas")
 public class Venda {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private Long id;
+    private Long codigo;
 
     @Column(name = "cod_produto")
     private String codProduto;
@@ -38,4 +38,6 @@ public class Venda {
 
     @Column(name = "preco")
     private BigDecimal preco;
+
+
 }
