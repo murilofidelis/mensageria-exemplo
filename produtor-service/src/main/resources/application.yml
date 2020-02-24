@@ -55,7 +55,6 @@ spring:
     stream:
       bindings:
         vendaChannel:
-          binder: rabbit
           destination: venda.exchange
           contentType: application/json
           group: vendas
