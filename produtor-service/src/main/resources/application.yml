@@ -1,7 +1,10 @@
 logging:
   level:
     ROOT: INFO
-    liquibase: OFF
+    org:
+      springframework:
+        cloud:
+          stream: DEBUG
 
 server:
   port: 8081
@@ -34,7 +37,23 @@ spring:
     hibernate:
       ddl-auto: 'update'
 
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: 5672
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+  #    listener:
+  #      default-requeue-rejected: false
+  #      retry.initial-interval: 2000
+  #      retry.max-interval: 5000
+  #      retry.multiplier: 1.5
+  cloud:
+    stream:
+      bindings:
+        vendaChannel:
+          binder: rabbit
+          destination: venda.exchange
+          contentType: application/json
+          group: vendas
+
 app:
-
-
-

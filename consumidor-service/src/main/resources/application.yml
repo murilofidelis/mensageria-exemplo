@@ -1,7 +1,10 @@
 logging:
   level:
     ROOT: INFO
-    liquibase: OFF
+    org:
+      springframework:
+        cloud:
+          stream: DEBUG
 
 server:
   port: 8082
@@ -33,6 +36,20 @@ spring:
       hibernate.temp.use_jdbc_metadata_defaults: false
     hibernate:
       ddl-auto: 'update'
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: 5672
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+
+  cloud:
+    stream:
+      bindings:
+        vendaChannel:
+          destination: venda.exchange
+          contentType: application/json
+          group: vendas
 
 app:
 

@@ -33,6 +33,3 @@ spring:
       ddl-auto: 'update'
 
 app:
-
-
-

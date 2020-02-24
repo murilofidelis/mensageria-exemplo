@@ -1,10 +1,8 @@
 package br.com.loja.produtor;
 
-import br.com.loja.produtor.config.AppProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.core.env.Environment;
 
 import java.net.InetAddress;
@@ -12,7 +10,6 @@ import java.net.UnknownHostException;
 
 @Slf4j
 @SpringBootApplication
-@EnableConfigurationProperties(AppProperties.class)
 public class ProdutorVendaServicoApplication {
 
     public static void main(String[] args) throws UnknownHostException {

@@ -12,7 +12,7 @@ import java.net.UnknownHostException;
 
 @Slf4j
 @SpringBootApplication
-@EnableConfigurationProperties(AppProperties.class)
+//@EnableConfigurationProperties(AppProperties.class)
 public class ConsumidorVendaServicoApplication {
 
     public static void main(String[] args) throws UnknownHostException {

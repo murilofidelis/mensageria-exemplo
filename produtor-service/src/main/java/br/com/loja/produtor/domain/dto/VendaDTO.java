@@ -1,6 +1,8 @@
 package br.com.loja.produtor.domain.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -10,6 +12,8 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @ToString
+@NoArgsConstructor
+@AllArgsConstructor
 public class VendaDTO implements Serializable {
 
     private Long id;
