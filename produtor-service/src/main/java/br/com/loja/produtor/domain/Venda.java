@@ -13,6 +13,7 @@ import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -38,4 +39,10 @@ public class Venda {
 
     @Column(name = "preco")
     private BigDecimal preco;
+
+    @Column(name = "dt_processamento")
+    private LocalDateTime dataProcessamento;
+
+    @Column(name = "cod_processamento")
+    private String codProcessamento;
 }

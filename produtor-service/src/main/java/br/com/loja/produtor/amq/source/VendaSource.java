@@ -7,6 +7,6 @@ public interface VendaSource {
 
     String VENDA_CHANNEL = "vendaChannel";
 
-    @Output(VENDA_CHANNEL)
+    @Output(Channels.VENDA_CHANNEL)
     MessageChannel outputChannel();
 }

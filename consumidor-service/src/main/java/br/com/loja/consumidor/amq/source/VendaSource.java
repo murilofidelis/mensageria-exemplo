@@ -5,8 +5,6 @@ import org.springframework.messaging.SubscribableChannel;
 
 public interface VendaSource {
 
-    String VENDA_CHANNEL = "vendaChannel";
-
-    @Input(VENDA_CHANNEL)
+    @Input(Channels.VENDA_CHANNEL)
     SubscribableChannel inputChannel();
 }

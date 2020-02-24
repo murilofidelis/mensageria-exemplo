@@ -50,6 +50,10 @@ spring:
           destination: venda.exchange
           contentType: application/json
           group: vendas
+        vendaCodChannel:
+          destination: codvenda.exchange
+          contentType: application/json
+          group: codvendas
 
 app:
 
