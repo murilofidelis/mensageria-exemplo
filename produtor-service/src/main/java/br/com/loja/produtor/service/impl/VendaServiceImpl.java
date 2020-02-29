@@ -1,7 +1,6 @@
 package br.com.loja.produtor.service.impl;
 
 import br.com.loja.produtor.amq.source.Channels;
-import br.com.loja.produtor.amq.source.VendaCodSource;
 import br.com.loja.produtor.amq.source.VendaSource;
 import br.com.loja.produtor.domain.Venda;
 import br.com.loja.produtor.domain.dto.VendaDTO;

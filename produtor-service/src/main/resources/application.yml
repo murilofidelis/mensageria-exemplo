@@ -50,7 +50,6 @@ spring:
           max-interval: 5000 # Duração máxima entre tentativas.
           multiplier: 1.5 # Multiplicador para aplicar ao intervalo de repetição anterior.
 
-
   cloud:
     stream:
       bindings:
