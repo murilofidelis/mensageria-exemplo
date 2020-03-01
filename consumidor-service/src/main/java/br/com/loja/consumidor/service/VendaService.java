@@ -8,4 +8,6 @@ public interface VendaService {
 
     List<VendaDTO> getAll();
 
+    Long getQuantiddeVendas();
+
 }

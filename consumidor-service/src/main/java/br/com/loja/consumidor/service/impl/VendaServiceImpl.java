@@ -1,8 +1,6 @@
 package br.com.loja.consumidor.service.impl;
 
 import br.com.loja.consumidor.amq.source.Channels;
-import br.com.loja.consumidor.amq.source.VendaCodSource;
-import br.com.loja.consumidor.amq.source.VendaSource;
 import br.com.loja.consumidor.domain.dto.VendaDTO;
 import br.com.loja.consumidor.domain.dto.VendaProcessadaDTO;
 import br.com.loja.consumidor.domain.mapper.VendaMapper;
@@ -13,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.stream.annotation.StreamListener;
 import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,10 +28,16 @@ public class VendaServiceImpl implements VendaService {
 
     private final VendaMapper mapper;
     private final VendaRepository repository;
+    private final SimpMessagingTemplate simpMessagingTemplate;
 
     @Override
     public List<VendaDTO> getAll() {
         return mapper.listDTO(repository.findAll());
+    }
+
+    @Override
+    public Long getQuantiddeVendas() {
+        return repository.getQuantidade();
     }
 
     /**
@@ -51,6 +56,7 @@ public class VendaServiceImpl implements VendaService {
             vendaProcessada.setCodVendaProcessado(this.geraCodVenda());
             vendaProcessada.setCodProduto(dto.getCodProduto());
             vendaProcessada.setDataProcessamento(LocalDateTime.now());
+            this.notificaVendaWebSocket(vendaProcessada);
             return vendaProcessada;
         } else {
             throw new AppException("Dados da venda não informados");
@@ -58,14 +64,23 @@ public class VendaServiceImpl implements VendaService {
     }
 
     private String geraCodVenda() {
-        int leftLimit = 97; // letter 'a'
-        int rightLimit = 122; // letter 'z'
+        int leftLimit = 97;
+        int rightLimit = 122;
         int targetStringLength = 10;
         return new Random().ints(leftLimit, rightLimit + 1)
                 .limit(targetStringLength)
                 .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
                 .toString();
 
+    }
+
+    /**
+     * envia as vendas processadas para o websocket
+     *
+     * @param venda
+     */
+    public void notificaVendaWebSocket(VendaProcessadaDTO venda) {
+        simpMessagingTemplate.convertAndSend("/topic/venda", venda);
     }
 
 }

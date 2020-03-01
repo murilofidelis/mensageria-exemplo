@@ -23,4 +23,9 @@ public class VendaResource {
         return new ResponseEntity<>(service.getAll(), HttpStatus.OK);
     }
 
+    @GetMapping("/quantidade")
+    public ResponseEntity<Long> getQuantiddeVendas() {
+        return new ResponseEntity<>(service.getQuantiddeVendas(), HttpStatus.OK);
+
+    }
 }
