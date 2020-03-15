@@ -29,7 +29,7 @@ export class SseService {
         'connection': 'keep-alive', // Isso diz ao navegador para não fechar a conexão.
         'Authorization': 'Bearer '
       },
-      // heartbeatTimeout: 500000 // 5 minutes else 45 seconds by default, it initiates another request
+      heartbeatTimeout: 500000 // 5 minutes else 45 seconds by default, it initiates another request
     });
 
     this._source.onopen = () => console.log('open SSE conection');
