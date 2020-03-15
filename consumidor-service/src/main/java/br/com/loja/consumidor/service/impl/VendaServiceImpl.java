@@ -1,7 +1,6 @@
 package br.com.loja.consumidor.service.impl;
 
 import br.com.loja.consumidor.amq.source.Channels;
-import br.com.loja.consumidor.domain.Venda;
 import br.com.loja.consumidor.domain.dto.VendaDTO;
 import br.com.loja.consumidor.domain.dto.VendaProcessadaDTO;
 import br.com.loja.consumidor.domain.mapper.VendaMapper;
@@ -9,7 +8,6 @@ import br.com.loja.consumidor.exception.AppException;
 import br.com.loja.consumidor.repository.VendaRepository;
 import br.com.loja.consumidor.service.VendaService;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.stream.annotation.StreamListener;
@@ -19,12 +17,11 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
@@ -41,10 +38,7 @@ public class VendaServiceImpl implements VendaService {
     private final VendaRepository repository;
     private final SimpMessagingTemplate simpMessagingTemplate;
 
-    @Setter
-    private static Integer total = 0;
-
-    private final List<SseEmitter> sseEmittersConnectionList = Collections.synchronizedList(new ArrayList<>());
+    private static HashMap<Integer, SseEmitter> userEmitters = new HashMap<>();
 
     @Override
     public List<VendaDTO> getAll() {
@@ -52,8 +46,8 @@ public class VendaServiceImpl implements VendaService {
     }
 
     @Override
-    public Long getQuantiddeVendas() {
-        return repository.getQuantidade();
+    public Long getQuantiddeVendas(final Integer idUsuario) {
+        return repository.getQuantidade(idUsuario);
     }
 
     /**
@@ -67,12 +61,14 @@ public class VendaServiceImpl implements VendaService {
     public VendaProcessadaDTO getVendaFila(VendaDTO dto) {
         log.info("RECEBENDO: {}", dto);
         if (Objects.nonNull(dto)) {
-            repository.save(mapper.toEntity(dto));
-            VendaProcessadaDTO vendaProcessada = new VendaProcessadaDTO();
-            vendaProcessada.setCodVendaProcessado(this.geraCodVenda());
-            vendaProcessada.setCodProduto(dto.getCodProduto());
-            vendaProcessada.setDataProcessamento(LocalDateTime.now());
-            //    this.notificaVendaWebSocket(vendaProcessada);
+            VendaDTO vendaSalvaDto = mapper.toDTO(repository.saveAndFlush(mapper.toEntity(dto)));
+            VendaProcessadaDTO vendaProcessada = VendaProcessadaDTO.builder()
+                    .codVendaProcessado(this.geraCodVenda())
+                    .codProduto(dto.getCodProduto())
+                    .dataProcessamento(LocalDateTime.now())
+                    .build();
+            this.notificaVendaViaSSE(vendaSalvaDto);
+            //this.notificaVendaViaWebSocket(vendaProcessada);
             return vendaProcessada;
         } else {
             throw new AppException("Dados da venda não informados");
@@ -95,64 +91,73 @@ public class VendaServiceImpl implements VendaService {
      *
      * @param venda
      */
-    public void notificaVendaWebSocket(VendaProcessadaDTO venda) {
+    public void notificaVendaViaWebSocket(VendaProcessadaDTO venda) {
         simpMessagingTemplate.convertAndSend("/topic/venda", venda);
     }
 
+    /**
+     * Registra um Event source por usuario
+     *
+     * @param userId
+     * @return
+     */
     @Override
-    public SseEmitter subscribeVenda(final Integer id) {
+    public SseEmitter subscribeVenda(final Integer userId) {
 
-        SseEmitter sseEmitter = new SseEmitter(0L);
+        SseEmitter emitter = new SseEmitter(0L);
 
         taskExecutor.execute(() -> {
 
-            synchronized (this.sseEmittersConnectionList) {
-                this.sseEmittersConnectionList.add(sseEmitter);
-                sseEmitter.onCompletion(() -> {
-                    synchronized (this.sseEmittersConnectionList) {
-                        this.sseEmittersConnectionList.remove(sseEmitter);
-                    }
-                });
-                sseEmitter.onTimeout(sseEmitter::complete);
-            }
-        });
-        return sseEmitter;
-    }
+            emitter.onCompletion(() -> removeEmitterByUserId(userId));
 
+            emitter.onTimeout(() -> removeEmitterByUserId(userId));
+
+            emitter.onError(erro -> removeEmitterByUserId(userId));
+
+            userEmitters.put(userId, emitter);
+
+        });
+        return emitter;
+    }
 
     @Override
-    public void notificaVenda() {
-
-        log.info("=================sseEmitters CONECTIONS: {}", this.sseEmittersConnectionList.size());
-
-        List<Venda> vendas = repository.findAll();
-
-        if (CollectionUtils.isEmpty(vendas)) {
-            return;
+    public void unSubscribeVenda(final Integer idUser) {
+        if (userEmitters.containsKey(idUser)) {
+            userEmitters.get(idUser).complete();
+            log.info("CONEXAO ENCERRADA, USER {}", idUser);
+            log.info("CONEXÕES ATIVAS: {}", userEmitters.size());
         }
-
-        if (total.equals(vendas.size())) {
-            return;
-        }
-
-        setTotal(vendas.size());
-
-        log.info("TOTAL VENDAS: {}", total);
-
-        List<SseEmitter> sseEmitterListToRemove = new ArrayList<>();
-        synchronized (this.sseEmittersConnectionList) {
-            for (SseEmitter sseEmitter : this.sseEmittersConnectionList) {
-                try {
-                    sseEmitter.send(vendas, MediaType.APPLICATION_JSON);
-                } catch (Exception e) {
-                    sseEmitterListToRemove.add(sseEmitter);
-                    sseEmitter.completeWithError(e);
-                    log.error("ERRO AO NOTIFICAR VENDA: {}", e.getMessage());
-                }
-            }
-            sseEmittersConnectionList.removeAll(sseEmitterListToRemove);
-        }
-
     }
 
+    private void removeEmitterByUserId(final Integer userId) {
+        userEmitters.remove(userId);
+    }
+
+    @Override
+    public void logInfoConexoes() {
+        if (!userEmitters.isEmpty()) {
+            userEmitters.forEach((id, sseEmitter) -> log.info("ID USUARIO: {}", id));
+        }
+        log.info("TOTAL CONEXÕES REGISTRADAS: {}", userEmitters.size());
+    }
+
+
+    private void notificaVendaViaSSE(VendaDTO venda) {
+
+        if (Objects.isNull(venda) || Objects.isNull(venda.getCodUsuario())) {
+            return;
+        }
+
+        Integer idUser = venda.getCodUsuario();
+
+        if (userEmitters.containsKey(idUser)) {
+            try {
+                SseEmitter emitter = userEmitters.get(idUser);
+                emitter.send(venda, MediaType.APPLICATION_JSON);
+            } catch (IOException e) {
+                this.removeEmitterByUserId(idUser);
+                log.error("ERRO AO NOTIFICAR VENDA: {}", e.getMessage());
+            }
+        }
+    }
 }

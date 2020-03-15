@@ -26,6 +26,10 @@ spring:
     username: sa
     password:
     driverClassName: org.h2.Driver
+    test-on-borrow: true
+    validation-query: SELECT 1
+    test-while-idle: true
+    time-between-eviction-runs-millis: 90000
 
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
@@ -55,9 +59,6 @@ spring:
           contentType: application/json
           group: codvendas
 
-  mvc:
-    async:
-      request-timeout: -1
 app:
 
 

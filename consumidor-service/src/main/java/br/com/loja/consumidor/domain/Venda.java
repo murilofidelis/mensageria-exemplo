@@ -39,5 +39,6 @@ public class Venda {
     @Column(name = "preco")
     private BigDecimal preco;
 
-
+    @Column(name = "cod_usuario")
+    private Integer codUsuario;
 }

@@ -17,6 +17,6 @@ public class NotificaVendaTask {
 
     @Scheduled(cron = "*/10 * * * * *", zone = TIME_ZONE)
     public void notificaVenda() {
-        service.notificaVenda();
+        service.logInfoConexoes();
     }
 }

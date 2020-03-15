@@ -27,4 +27,6 @@ public class VendaDTO implements Serializable {
     private BigDecimal preco;
 
     private Integer quantidade;
+
+    private Integer codUsuario;
 }

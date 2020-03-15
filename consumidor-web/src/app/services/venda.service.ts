@@ -10,8 +10,9 @@ export class VendaService {
 
   constructor(private http: HttpClient) { }
 
-  getQuantiddeVendas(): Observable<number> {
-    return this.http.get<number>(`${this.urlApi}/venda/quantidade`);
+  getQuantiddeVendasPorUsuario(): Observable<number> {
+    const id = localStorage.getItem('userID');
+    return this.http.get<number>(`${this.urlApi}/venda/quantidade/${id}`);
   }
 
 }

@@ -9,10 +9,11 @@ public interface VendaService {
 
     List<VendaDTO> getAll();
 
-    Long getQuantiddeVendas();
+    Long getQuantiddeVendas(Integer idUsuario);
 
     SseEmitter subscribeVenda(Integer id);
 
-    void notificaVenda();
+    void unSubscribeVenda(Integer id);
 
+    void logInfoConexoes();
 }

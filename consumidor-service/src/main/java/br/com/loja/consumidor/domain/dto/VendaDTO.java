@@ -19,4 +19,6 @@ public class VendaDTO implements Serializable {
     private String marca;
 
     private BigDecimal preco;
+
+    private Integer codUsuario;
 }

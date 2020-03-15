@@ -20,13 +20,13 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.buscaQuantidadedeVendas();
-    //  this.ouveNotificacaoVenda();
+    // this.ouveNotificacaoVenda();
 
     this.ouveNoticacaoSSE();
   }
 
   private buscaQuantidadedeVendas() {
-    this.vendaService.getQuantiddeVendas()
+    this.vendaService.getQuantiddeVendasPorUsuario()
       .subscribe(qtd => {
         if (qtd) {
           this.totalVendas = qtd;
@@ -35,6 +35,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   private ouveNotificacaoVenda() {
+
     this.socketService.conecta();
 
     this.socketService.listenerObserver
@@ -49,9 +50,9 @@ export class AppComponent implements OnInit, OnDestroy {
 
   private ouveNoticacaoSSE() {
     this.sseService.connect();
-    this.sseService.listenerObserver.subscribe((res: any[]) => {
-      if (res && res.length > 0) {
-        this.totalVendas = res.length;
+    this.sseService.listenerObserver.subscribe((res: any) => {
+      if (res) {
+        this.totalVendas = this.totalVendas + 1;
       }
     });
   }

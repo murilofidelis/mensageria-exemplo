@@ -9,7 +9,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @EnableAsync
 @Configuration
-public class SSEConfig implements WebMvcConfigurer {
+public class AsyncConfig implements WebMvcConfigurer {
 
     @Override
     public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
@@ -20,7 +20,7 @@ public class SSEConfig implements WebMvcConfigurer {
     @Bean("taskExecutor")
     public ThreadPoolTaskExecutor mvcTaskExecutor() {
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
-        taskExecutor.setCorePoolSize(2);
+        taskExecutor.setCorePoolSize(4);
         taskExecutor.setMaxPoolSize(50);
         taskExecutor.setQueueCapacity(10000);
         taskExecutor.setThreadNamePrefix("consumidor-task-");

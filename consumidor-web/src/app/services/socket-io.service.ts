@@ -23,6 +23,7 @@ export class SocketIoService {
   conecta() {
 
     const url = `${this.urlApi}/websocket`;
+
     const socket = new SockJS(url);
 
     this.stompClient = Stomp.over(socket);
@@ -30,13 +31,10 @@ export class SocketIoService {
     this.stompClient.connect({}, () => {
       setTimeout(() => {
         this.ouveEventos();
-
       }, 1500);
-
     },
       () => this.reconect()
     );
-
   }
 
   desconecta() {
@@ -44,9 +42,7 @@ export class SocketIoService {
       this.stompClient.disconnect();
       this.stompClient = null;
     }
-
   }
-
 
   private reconect() {
     console.log('STOMP: Attempting connection');

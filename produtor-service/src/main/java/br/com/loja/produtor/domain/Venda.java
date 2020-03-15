@@ -45,4 +45,7 @@ public class Venda {
 
     @Column(name = "cod_processamento")
     private String codProcessamento;
+
+    @Column(name = "cod_usuario")
+    private Integer codUsuario;
 }
