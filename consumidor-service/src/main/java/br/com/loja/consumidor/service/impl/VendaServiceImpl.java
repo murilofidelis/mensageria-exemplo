@@ -9,10 +9,13 @@ import br.com.loja.consumidor.repository.VendaRepository;
 import br.com.loja.consumidor.service.VendaService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.ImmediateAcknowledgeAmqpException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.stream.annotation.StreamListener;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.MediaType;
+
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -23,6 +26,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 
@@ -39,6 +43,8 @@ public class VendaServiceImpl implements VendaService {
     private final SimpMessagingTemplate simpMessagingTemplate;
 
     private static HashMap<Integer, SseEmitter> userEmitters = new HashMap<>();
+
+    private static final Long NUM_MAXIMO_TENTATIVAS = 2L;
 
     @Override
     public List<VendaDTO> getAll() {
@@ -58,8 +64,17 @@ public class VendaServiceImpl implements VendaService {
     @Transactional
     @StreamListener(Channels.VENDA_CHANNEL)
     @SendTo(Channels.VENDA_COD_CHANNEL)
-    public VendaProcessadaDTO getVendaFila(VendaDTO dto) {
+    public VendaProcessadaDTO getVendaFila(VendaDTO dto, @Header(name = "x-death", required = false) Map<?, ?> death) {
+
         log.info("RECEBENDO: {}", dto);
+
+        if (death != null && death.get("count") != null) {
+            Long count = (Long) death.get("count");
+            if (count >= NUM_MAXIMO_TENTATIVAS) {
+                throw new ImmediateAcknowledgeAmqpException("NÚMERO MÁXIMO DE TENTATIVAS ATINGIDO: " + NUM_MAXIMO_TENTATIVAS);
+            }
+        }
+
         if (Objects.nonNull(dto)) {
             VendaDTO vendaSalvaDto = mapper.toDTO(repository.saveAndFlush(mapper.toEntity(dto)));
             VendaProcessadaDTO vendaProcessada = VendaProcessadaDTO.builder()
@@ -67,6 +82,12 @@ public class VendaServiceImpl implements VendaService {
                     .codProduto(dto.getCodProduto())
                     .dataProcessamento(LocalDateTime.now())
                     .build();
+
+
+            if (dto.getCodUsuario() != null) {
+                throw new AppException("ERRO TESTE");
+            }
+
             this.notificaVendaViaSSE(vendaSalvaDto);
             //this.notificaVendaViaWebSocket(vendaProcessada);
             return vendaProcessada;

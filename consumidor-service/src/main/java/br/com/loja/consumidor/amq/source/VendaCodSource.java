@@ -6,5 +6,5 @@ import org.springframework.messaging.MessageChannel;
 public interface VendaCodSource {
 
     @Output(Channels.VENDA_COD_CHANNEL)
-    MessageChannel inputChannel();
+    MessageChannel outPutChannel();
 }

@@ -5,8 +5,6 @@ import org.springframework.messaging.MessageChannel;
 
 public interface VendaSource {
 
-    String VENDA_CHANNEL = "vendaChannel";
-
     @Output(Channels.VENDA_CHANNEL)
     MessageChannel outputChannel();
 }
