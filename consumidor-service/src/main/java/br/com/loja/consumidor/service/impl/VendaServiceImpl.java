@@ -83,11 +83,6 @@ public class VendaServiceImpl implements VendaService {
                     .dataProcessamento(LocalDateTime.now())
                     .build();
 
-
-            if (dto.getCodUsuario() != null) {
-                throw new AppException("ERRO TESTE");
-            }
-
             this.notificaVendaViaSSE(vendaSalvaDto);
             //this.notificaVendaViaWebSocket(vendaProcessada);
             return vendaProcessada;
